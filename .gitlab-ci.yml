@@ -1,0 +1,71 @@
+# Scheduled update of the SWOT lake data and the GitLab Pages report.
+# Runs on pipeline schedules (Build > Pipeline schedules) and manual "Run pipeline":
+#   update-swot-data  downloads new data, commits it back to the branch, builds public/index.html
+#   pages             publishes public/ to GitLab Pages (Deploy > Pages shows the URL)
+#
+# CI/CD variables (Settings > CI/CD > Variables, masked):
+#   EARTHDATA_USERNAME, EARTHDATA_PASSWORD   NASA Earthdata login
+#   DATA_PUSH_TOKEN                          project access token, write_repository scope
+
+stages: [update, deploy]
+
+variables:
+  GIT_STRATEGY: clone
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  TIME_LIMIT_MIN: "90"          # stop starting new downloads after this; the rest waits for the next run
+
+update-swot-data:
+  stage: update
+  image: python:3.11            # full image: includes git, needed to commit results
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  resource_group: swot-data     # never run two updates at the same time
+  timeout: 2h
+  cache:
+    key: pip-cache
+    paths: [.cache/pip]
+  before_script:
+    - pip install -q -r requirements.txt
+    # Only RiverObs' SWOTWater/aggregate.py is used, so clone it instead of installing the package
+    - git clone -q --depth 1 https://github.com/SWOTAlgorithms/RiverObs.git /tmp/RiverObs
+      && export PYTHONPATH="/tmp/RiverObs/src:${PYTHONPATH}"
+      || echo "RiverObs clone failed; uncertainty columns will be NaN"
+  script:
+    # Downloaded data is always committed: if the export or the aggregation stops with an
+    # error, the job carries on to the commit step, and the next run continues from there
+    - python src/export_pixc.py --time-limit-min "$TIME_LIMIT_MIN"
+      || echo "WARNING - export stopped with an error; committing the progress saved so far"
+    - python src/aggregate_wse.py
+      || echo "WARNING - aggregation failed; committing the downloaded data anyway"
+    - git config user.name "SWOT lakes bot"
+    - git config user.email "swot-lakes-bot@noreply.${CI_SERVER_HOST}"
+    - |
+      if [ -d data ]; then git add data; fi
+      if git diff --cached --quiet; then
+        echo "No new data."
+      else
+        git commit -q -m "Data update $(date -u +%Y-%m-%d) [skip ci]"
+        git push "https://oauth2:${DATA_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:${CI_COMMIT_BRANCH}"
+      fi
+    # Report for GitLab Pages (built after the data is committed, so a report error
+    # never loses data)
+    - python src/gdl_swot_report.py --config report.toml --all-lakes
+      --timeseries data/aggregated/wse_timeseries.parquet --pixc-root data/pixc
+      -o public/index.html
+  artifacts:
+    when: always
+    paths: [data/aggregated/, public/]
+    expire_in: 30 days
+
+pages:
+  stage: deploy
+  image: alpine:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  needs: [update-swot-data]     # takes public/ from the update job's artifacts
+  script:
+    - test -f public/index.html
+  artifacts:
+    paths: [public]

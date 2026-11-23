@@ -1,0 +1,50 @@
+# Configuration for the SWOT lake pipeline. Paths are relative to the repo root.
+
+lakes_geojson: lakes/SWOT_monitoring_lakes.geojson
+data_root: data
+tmp_dir: _tmp_pixc            # granules are downloaded here and deleted right after use
+
+# Written to the manifest for every granule so you can tell which settings produced it.
+# Bump it when you change the settings below.
+processing_version: "2026.11"
+
+search:
+  collection: SWOT_L2_HR_PIXC_D
+  start_date: "2023-06-01"
+  season_months: [6, 7, 8, 9, 10, 11]   # June 1 through December 1, every year
+  download_batch_size: 4                # granules on disk at once (each is a few hundred MB)
+
+# Pixels kept in the per-granule files (either assignment method must also claim them)
+pixel_filter:
+  classification_vals: [2, 3, 4, 5, 6, 7]
+  cross_track_min_m: 10000
+  cross_track_max_m: 60000
+
+# Quality control shared by both assignment methods. elev_min/elev_max (NAVD88)
+# come from each lake's properties in the lakes GeoJSON.
+qc:
+  water_classification: [4]
+  geolocation_qual_max: 65536
+  sig0_qual_max: 65536
+  interferogram_qual_max: 65536
+  classification_qual_max: 65536
+
+# Refined pixel assignment (slant-plane connectivity + refined geolocation),
+# adapted from the SWOT Pixel Assignment Example notebook (B. Williams, JPL)
+refined_assignment:
+  enabled: true
+  buffer_m: 300                  # dilation of the lake polygon (m)
+  bbox_buff_deg: 0.001           # extra margin around the dilated polygon (deg)
+  slant_buff_pix: 10             # slant-plane padding (pixels)
+  max_dh_m: 50.0                 # max height change used in refined geolocation (m)
+  iqr_k: 3.0                     # height outlier threshold (multiples of IQR)
+  use_elev_bounds_for_median: false
+
+# PIXC variables saved per pixel on top of the ones the pipeline needs.
+# Remove any you don't use to make the files smaller.
+extra_pixc_variables:
+  - sig0
+  - load_tide_got
+  - water_frac
+  - pixel_area
+  - height_cor_xover

@@ -1,0 +1,161 @@
+# Settings for src/gdl_swot_report.py (the GitLab Pages report).
+# The CI job passes --all-lakes; the script then keeps only glacier-dammed lakes
+# assessed as likely/potentially successful in the SWOT quality assessment.
+# [[lakes]] blocks add display names, notes, release/crest dates and CAP estimates.
+
+[report]
+title = "Alaska Glacier-Dammed Lake SWOT Monitoring"
+author = "U.S. Geological Survey"
+display_timezone = "America/Anchorage"
+# Link added to every lake's notes. A lake can point elsewhere with its own gdl_url.
+gdl_url = "https://www.weather.gov/aprfc/gdlMain"
+gdl_link_text = "Glacial Dammed Lake Data"
+
+[data]
+# Where the maps and 3-D plots look for lake outlines (the pipeline's lakes GeoJSON)
+search_dirs = ["lakes"]
+
+[settings]
+season_start_month = 6          # June
+season_end_month = 11           # November
+years = []                      # e.g. [2024, 2025, 2026]; empty = all years
+min_pixels = 10                 # minimum filtered pixels for a valid pass
+pixel_thresholds = [10, 25, 50, 100]   # options in the "minimum pixels" dropdown
+hampel_k = 3                    # Hampel half-window (passes)
+hampel_t0 = 3.0                 # Hampel threshold (x MAD)
+min_obs_for_hampel = 5
+max_gap_days = 60               # passes further apart get a dotted connector
+trend_window_days = 30
+pre_release_window_days = 30
+predict_days_ahead = 45         # how far ahead to list predicted overpasses
+max_3d_points = 5000            # points drawn per pass in the 3-D plot
+max_3d_passes = 8               # most recent pass dates offered in the 3-D plot
+pixc_min_year = 0               # 3-D pixel clouds: 0 = current year only
+
+[settings.year_colors]
+2023 = "#CC79A7"
+2024 = "#009E73"
+2025 = "#E69F00"
+2026 = "#0072B2"
+2027 = "#D55E00"
+
+# =====================================================================
+# LAKES - one [[lakes]] block per lake.
+#   name          matches `lake_name` in the data (case, spaces and
+#                 underscores are ignored)
+#   releases      documented release dates (dashed lines)
+#   crests        outburst crest dates (dash-dot lines), e.g. from the
+#                 NWS APRFC GDL event tables
+#   cap           Civil Air Patrol observations, elevation in feet
+#   gdl_url       optional; overrides [report].gdl_url for this lake
+#   aliases       optional; other names the lake has in the data
+# =====================================================================
+
+[[lakes]]
+name = "Snow"
+display_name = "Snow Lake"
+notes = "Drains into the Snow River, then Kenai Lake and the Kenai River."
+releases = [2023-09-05, 2024-11-16, 2025-10-16]
+crests = []
+cap = [
+  { date = 2024-07-20, elevation_ft = 2330 },
+  { date = 2024-08-20, elevation_ft = 2350 },
+  { date = 2024-09-16, elevation_ft = 2380 },
+  { date = 2025-08-18, elevation_ft = 2376 },
+  { date = 2025-09-17, elevation_ft = 2423 },
+]
+
+[[lakes]]
+name = "Skilak"
+display_name = "Skilak Lake"
+notes = "Drains into Skilak Lake and the Kenai River."
+releases = [2023-09-07, 2025-11-04]
+crests = []
+cap = [
+  { date = 2024-07-20, elevation_ft = 2680 },
+  { date = 2024-08-20, elevation_ft = 2710 },
+  { date = 2024-09-16, elevation_ft = 2763 },
+  { date = 2025-08-18, elevation_ft = 2790 },
+  { date = 2025-09-17, elevation_ft = 2805 },
+]
+
+[[lakes]]
+name = "Berg"
+display_name = "Berg Lake"
+notes = ""
+releases = [2025-07-21, 2024-07-25, 2023-07-27]
+crests = []
+cap = []
+
+[[lakes]]
+name = "Big_Lake"
+display_name = "Big Lake"
+notes = ""
+releases = []
+crests = []
+cap = []
+
+[[lakes]]
+name = "Frustration"
+display_name = "Frustration"
+notes = ""
+releases = [2025-08-22]
+crests = []
+cap = []
+
+[[lakes]]
+name = "Iceberg"
+display_name = "Lake Iceberg"
+notes = "Distinct from Iceburg"
+releases = []
+crests = []
+cap = []
+
+[[lakes]]
+name = "Iceburg"
+display_name = "Lake Iceburg"
+notes = "Distinct from Iceberg"
+releases = []
+crests = []
+cap = []
+
+[[lakes]]
+name = "Lake_No_Lake"
+display_name = "Lake No Lake"
+notes = ""
+releases = [2025-06-30, 2024-06-30, 2023-06-26, 2025-07-01]
+crests = []
+cap = []
+
+[[lakes]]
+name = "Nelchina_North"
+display_name = "Nelchina North"
+notes = ""
+releases = []
+crests = []
+cap = []
+
+[[lakes]]
+name = "Nelchina_South"
+display_name = "Nelchina South"
+notes = ""
+releases = [2023-07-27]
+crests = []
+cap = []
+
+[[lakes]]
+name = "Strandline"
+display_name = "Strandline"
+notes = ""
+releases = []
+crests = []
+cap = []
+
+[[lakes]]
+name = "Tazlione"
+display_name = "Tazlione"
+notes = ""
+releases = []
+crests = []
+cap = []
+

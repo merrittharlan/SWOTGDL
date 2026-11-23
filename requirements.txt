@@ -1,0 +1,12 @@
+earthaccess>=0.12
+h5py
+numpy
+plotly
+pandas>=2.0
+pyarrow
+pyproj
+pyyaml
+scipy
+shapely>=2.0
+# Optional, for the uncert_* columns: clone https://github.com/SWOTAlgorithms/RiverObs
+# and add its src/ folder to PYTHONPATH (see .gitlab-ci.yml)

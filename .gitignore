@@ -1,0 +1,6 @@
+_tmp_pixc/
+.cache/
+__pycache__/
+*.nc
+env/
+public/
